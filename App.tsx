@@ -16,7 +16,8 @@ const App: React.FC = () => {
           <Route path="/event/:id" element={<EventDetails />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/create-event" element={<CreateEvent />} />
-          <Route path="/admin" element={<AdminMaster />} />
+          {/* Rota Segura/Oculta para Administração */}
+          <Route path="/sys-master-secure-access" element={<AdminMaster />} />
         </Routes>
       </Layout>
     </Router>

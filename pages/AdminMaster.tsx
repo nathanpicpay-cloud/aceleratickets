@@ -11,7 +11,8 @@ import {
   Activity, 
   Lock,
   Zap,
-  Radio
+  Radio,
+  EyeOff
 } from 'lucide-react';
 import { Button } from '../components/Button';
 
@@ -69,15 +70,15 @@ export const AdminMaster: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-             <div className="bg-primary-500/10 p-2 rounded-lg border border-primary-500/20">
-                <Cpu className="h-6 w-6 text-primary-400 animate-pulse" />
+             <div className="bg-red-500/10 p-2 rounded-lg border border-red-500/20">
+                <Lock className="h-6 w-6 text-red-500 animate-pulse" />
              </div>
-             <span className="text-xs font-bold text-primary-500 uppercase tracking-widest border border-primary-500/30 px-3 py-1 rounded-full bg-primary-500/5">
-                System Core v1.2
+             <span className="text-xs font-bold text-red-500 uppercase tracking-widest border border-red-500/30 px-3 py-1 rounded-full bg-red-500/5 flex items-center gap-2">
+                <EyeOff className="h-3 w-3" /> Secure Node Access
              </span>
           </div>
-          <h1 className="text-4xl font-black text-white tracking-tight">Admin Master Control</h1>
-          <p className="text-slate-400 mt-2 font-light">Gerencie integrações críticas e monitore a saúde da infraestrutura.</p>
+          <h1 className="text-4xl font-black text-white tracking-tight">Master Control <span className="text-slate-600">#ROOT</span></h1>
+          <p className="text-slate-400 mt-2 font-light">Acesso restrito. Todas as ações são logadas.</p>
         </div>
 
         {/* System Health Widget */}
