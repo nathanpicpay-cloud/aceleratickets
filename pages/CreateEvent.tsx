@@ -1,12 +1,13 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Image as ImageIcon, MapPin, Calendar, Clock, ArrowRight, Check } from 'lucide-react';
+import { Sparkles, Image as ImageIcon, MapPin, Calendar, Clock, ArrowRight, Check, X, UploadCloud, DollarSign } from 'lucide-react';
 import { Button } from '../components/Button';
 import { generateEventDescription } from '../services/geminiService';
 import { EventCategory } from '../types';
 
 export const CreateEvent: React.FC = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState(1);
   const [loadingAI, setLoadingAI] = useState(false);
   
@@ -16,6 +17,7 @@ export const CreateEvent: React.FC = () => {
     date: '',
     time: '',
     location: '',
+    price: '',
     keyDetails: '',
     description: '',
     imageUrl: ''
@@ -24,6 +26,25 @@ export const CreateEvent: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFormData(prev => ({ ...prev, imageUrl: '' }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleGenerateDescription = useCallback(async () => {
@@ -52,17 +73,53 @@ export const CreateEvent: React.FC = () => {
     }, 1000);
   };
 
+  const steps = [
+    { id: 1, label: 'Informações' },
+    { id: 2, label: 'Detalhes' },
+    { id: 3, label: 'Revisão' }
+  ];
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-16 animate-fade-in">
       <div className="mb-12 text-center">
         <h1 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tighter">Criar Novo Evento</h1>
         <p className="text-slate-400 text-lg">Lance sua experiência em minutos com nossa <span className="text-primary-400 font-bold text-glow-sm">Assistente de IA</span>.</p>
         
-        {/* Progress Steps */}
-        <div className="mt-12 flex justify-center items-center space-x-6">
-            <div className={`h-1.5 flex-1 max-w-[100px] rounded-full transition-all duration-700 ${step >= 1 ? 'bg-gradient-to-r from-primary-600 to-primary-400 shadow-[0_0_15px_rgba(6,182,212,0.6)]' : 'bg-slate-800'}`}></div>
-            <div className={`h-1.5 flex-1 max-w-[100px] rounded-full transition-all duration-700 ${step >= 2 ? 'bg-gradient-to-r from-primary-600 to-primary-400 shadow-[0_0_15px_rgba(6,182,212,0.6)]' : 'bg-slate-800'}`}></div>
-            <div className={`h-1.5 flex-1 max-w-[100px] rounded-full transition-all duration-700 ${step >= 3 ? 'bg-gradient-to-r from-primary-600 to-primary-400 shadow-[0_0_15px_rgba(6,182,212,0.6)]' : 'bg-slate-800'}`}></div>
+        {/* Visual Stepper */}
+        <div className="mt-16 mb-4 relative max-w-2xl mx-auto px-4">
+            {/* Background Line */}
+            <div className="absolute top-6 left-4 right-4 h-0.5 bg-slate-800 -z-10 rounded-full"></div>
+            
+            {/* Active Progress Line */}
+            <div 
+                className="absolute top-6 left-4 h-0.5 bg-gradient-to-r from-primary-600 to-secondary-500 -z-10 rounded-full transition-all duration-700 ease-in-out shadow-[0_0_10px_rgba(34,211,238,0.5)]"
+                style={{ width: `calc(${((step - 1) / (steps.length - 1)) * 100}% - 2rem)` }}
+            ></div>
+
+            <div className="flex justify-between items-center w-full relative">
+                {steps.map((s) => (
+                    <div 
+                        key={s.id} 
+                        className={`flex flex-col items-center gap-3 relative group ${step > s.id ? 'cursor-pointer' : ''}`} 
+                        onClick={() => step > s.id && setStep(s.id)}
+                    >
+                         <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500 relative z-10 ${
+                            step === s.id 
+                                ? 'border-primary-500 bg-[#030712] text-primary-400 shadow-[0_0_20px_rgba(6,182,212,0.4)] scale-110' 
+                                : step > s.id 
+                                    ? 'border-primary-500 bg-primary-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)]' 
+                                    : 'border-slate-800 bg-[#0b1121] text-slate-600'
+                         }`}>
+                            {step > s.id ? <Check className="h-6 w-6" /> : <span className="font-bold text-lg">{s.id}</span>}
+                         </div>
+                         <span className={`text-xs font-bold uppercase tracking-widest transition-colors duration-300 ${
+                            step >= s.id ? 'text-white text-glow-sm' : 'text-slate-600'
+                         }`}>
+                            {s.label}
+                         </span>
+                    </div>
+                ))}
+            </div>
         </div>
       </div>
 
@@ -109,18 +166,20 @@ export const CreateEvent: React.FC = () => {
                     </div>
                  </div>
                  <div>
-                    <label className="block text-sm font-bold text-slate-300 mb-2 uppercase tracking-wide">Localização</label>
+                    <label className="block text-sm font-bold text-slate-300 mb-2 uppercase tracking-wide">Preço (Lote Antecipado)</label>
                     <div className="relative rounded-md shadow-sm">
                         <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                        <MapPin className="h-5 w-5 text-slate-500" />
+                            <DollarSign className="h-5 w-5 text-slate-500" />
                         </div>
                         <input
-                        type="text"
-                        name="location"
-                        value={formData.location}
-                        onChange={handleInputChange}
-                        className="block w-full pl-12 rounded-2xl bg-[#030712] border border-white/10 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 p-5 transition-all placeholder-slate-700 font-medium"
-                        placeholder="Expo Center, SP"
+                            type="number"
+                            name="price"
+                            value={formData.price}
+                            onChange={handleInputChange}
+                            placeholder="0.00"
+                            min="0"
+                            step="0.01"
+                            className="block w-full pl-12 rounded-2xl bg-[#030712] border border-white/10 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 p-5 transition-all placeholder-slate-700 font-medium"
                         />
                     </div>
                  </div>
@@ -156,6 +215,23 @@ export const CreateEvent: React.FC = () => {
                             className="block w-full pl-12 rounded-2xl bg-[#030712] border border-white/10 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 p-5 transition-all [color-scheme:dark] font-medium cursor-pointer"
                         />
                     </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-300 mb-2 uppercase tracking-wide">Localização</label>
+                <div className="relative rounded-md shadow-sm">
+                    <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                    <MapPin className="h-5 w-5 text-slate-500" />
+                    </div>
+                    <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleInputChange}
+                    className="block w-full pl-12 rounded-2xl bg-[#030712] border border-white/10 text-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 p-5 transition-all placeholder-slate-700 font-medium"
+                    placeholder="Expo Center, SP"
+                    />
                 </div>
               </div>
 
@@ -231,14 +307,50 @@ export const CreateEvent: React.FC = () => {
                 <h2 className="text-2xl font-bold text-white tracking-tight">Mídia & Revisão</h2>
               </div>
               
-              <div className="border-2 border-dashed border-white/10 rounded-3xl p-16 text-center hover:border-primary-500/50 hover:bg-primary-500/5 transition-all cursor-pointer group relative overflow-hidden">
-                 <div className="absolute inset-0 bg-gradient-to-tr from-transparent to-primary-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                 <div className="w-20 h-20 rounded-full bg-white/5 mx-auto flex items-center justify-center mb-6 group-hover:scale-110 transition-transform group-hover:bg-primary-500/20 group-hover:text-primary-400 text-slate-500 border border-white/5 group-hover:border-primary-500/30 shadow-lg">
-                    <ImageIcon className="h-8 w-8" />
-                 </div>
-                 <p className="mt-2 text-base font-bold text-white relative z-10">Clique para enviar imagem de capa</p>
-                 <p className="text-xs text-slate-500 mt-2 relative z-10 font-medium">SVG, PNG, JPG ou GIF (max. 800x400px)</p>
-                 <input type="file" className="hidden" />
+              <div 
+                className={`relative rounded-3xl overflow-hidden transition-all duration-300 group ${formData.imageUrl ? 'border-none shadow-2xl' : 'border-2 border-dashed border-white/10 hover:border-primary-500/50 hover:bg-primary-500/5 cursor-pointer'}`}
+                onClick={() => !formData.imageUrl && fileInputRef.current?.click()}
+              >
+                {formData.imageUrl ? (
+                  <div className="relative w-full h-80">
+                    <img src={formData.imageUrl} alt="Capa do evento" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                       <Button 
+                         type="button"
+                         variant="primary" 
+                         size="sm"
+                         onClick={() => fileInputRef.current?.click()}
+                         className="mr-2"
+                       >
+                         Trocar Imagem
+                       </Button>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="absolute top-4 right-4 bg-red-500/80 hover:bg-red-500 text-white p-2 rounded-full backdrop-blur-md transition-all shadow-lg z-20"
+                        title="Remover imagem"
+                    >
+                        <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="p-16 text-center">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent to-primary-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="w-20 h-20 rounded-full bg-white/5 mx-auto flex items-center justify-center mb-6 group-hover:scale-110 transition-transform group-hover:bg-primary-500/20 group-hover:text-primary-400 text-slate-500 border border-white/5 group-hover:border-primary-500/30 shadow-lg">
+                        <UploadCloud className="h-8 w-8" />
+                    </div>
+                    <p className="mt-2 text-base font-bold text-white relative z-10">Clique para enviar imagem de capa</p>
+                    <p className="text-xs text-slate-500 mt-2 relative z-10 font-medium">SVG, PNG, JPG ou GIF (max. 800x400px)</p>
+                  </div>
+                )}
+                 <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                    accept="image/*"
+                    className="hidden" 
+                 />
               </div>
 
               <div className="bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-md">
@@ -249,6 +361,9 @@ export const CreateEvent: React.FC = () => {
                       <p className="flex justify-between border-b border-white/5 pb-3"><span className="text-slate-500">Nome do Evento</span> <span className="font-bold text-white text-base">{formData.title}</span></p>
                       <p className="flex justify-between border-b border-white/5 pb-3"><span className="text-slate-500">Quando</span> <span className="font-bold text-white text-base">{formData.date} às {formData.time}</span></p>
                       <p className="flex justify-between border-b border-white/5 pb-3"><span className="text-slate-500">Onde</span> <span className="font-bold text-white text-base">{formData.location}</span></p>
+                      <p className="flex justify-between border-b border-white/5 pb-3"><span className="text-slate-500">Valor (Lote 1)</span> <span className="font-bold text-white text-base">
+                        {!formData.price || Number(formData.price) === 0 ? 'Grátis' : `R$ ${formData.price}`}
+                      </span></p>
                   </div>
               </div>
 

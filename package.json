@@ -17,7 +17,7 @@
     "react-router-dom": "^6.23.0",
     "lucide-react": "^0.378.0",
     "recharts": "^2.12.7",
-    "@google/genai": "*"
+    "@google/genai": "^0.1.2"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",

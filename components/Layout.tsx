@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Ticket, Menu, X, PlusCircle } from 'lucide-react';
+import { Ticket, Menu, X, PlusCircle, Settings } from 'lucide-react';
 import { Button } from './Button';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -59,6 +59,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               </div>
             </div>
             <div className="hidden sm:flex sm:items-center sm:gap-4">
+               <Link to="/admin">
+                  <button className={`p-2 rounded-lg transition-colors ${isActive('/admin') ? 'text-primary-400 bg-primary-500/10' : 'text-slate-400 hover:text-white hover:bg-white/5'}`} title="Admin Master">
+                     <Settings className="h-5 w-5" />
+                  </button>
+               </Link>
                <Link to="/create-event">
                 <Button variant="outline" size="sm" className="gap-2 border-white/10 hover:border-primary-500/50 hover:bg-primary-500/10 hover:text-primary-300">
                    <PlusCircle className="h-4 w-4" />
@@ -114,6 +119,17 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Criar Evento
+              </Link>
+               <Link
+                to="/admin"
+                className={`block pl-3 pr-4 py-3 border-l-4 text-base font-medium ${
+                    isActive('/admin') 
+                    ? 'bg-primary-500/10 border-primary-500 text-primary-400' 
+                    : 'border-transparent text-slate-400 hover:bg-white/5 hover:text-white'
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Admin Master
               </Link>
             </div>
           </div>

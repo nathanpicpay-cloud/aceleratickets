@@ -5,6 +5,7 @@ import { Home } from './pages/Home';
 import { EventDetails } from './pages/EventDetails';
 import { Dashboard } from './pages/Dashboard';
 import { CreateEvent } from './pages/CreateEvent';
+import { AdminMaster } from './pages/AdminMaster';
 
 const App: React.FC = () => {
   return (
@@ -15,6 +16,7 @@ const App: React.FC = () => {
           <Route path="/event/:id" element={<EventDetails />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/create-event" element={<CreateEvent />} />
+          <Route path="/admin" element={<AdminMaster />} />
         </Routes>
       </Layout>
     </Router>
